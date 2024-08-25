@@ -9,14 +9,12 @@ import (
 	"path/filepath"
 )
 
-type InMemoryGitDirectory struct {
-	path      string
-	repoURL   string
+type FS struct {
 	worktree  *git.Worktree
 	Filenames []string
 }
 
-func (d *InMemoryGitDirectory) Open(filename string) (io.ReadCloser, error) {
+func (d *FS) Open(filename string) (io.ReadCloser, error) {
 	f, err := d.worktree.Filesystem.Open(filename)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file: %w", err)
@@ -25,7 +23,7 @@ func (d *InMemoryGitDirectory) Open(filename string) (io.ReadCloser, error) {
 	return f, nil
 }
 
-func NewGit(URL string, path string) (*InMemoryGitDirectory, error) {
+func New(URL string, path string) (*FS, error) {
 	repo, err := git.Clone(memory.NewStorage(), memfs.New(), &git.CloneOptions{
 		URL: URL,
 	})
@@ -66,10 +64,8 @@ func NewGit(URL string, path string) (*InMemoryGitDirectory, error) {
 		fileNames = append(fileNames, file.Name())
 	}
 
-	return &InMemoryGitDirectory{
+	return &FS{
 		worktree:  worktree,
 		Filenames: fileNames,
-		repoURL:   URL,
-		path:      path,
 	}, nil
 }
